@@ -97,3 +97,8 @@ Summon your pull requests and issues to this dark domain. Contributions, improve
 
 # 💀 Author
 Crafted with infernal dedication by **John Paul Dasig**
+
+📸 Demo & Results
+
+![Project Preview](preview.png)
+
