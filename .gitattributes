@@ -1,0 +1,22 @@
+# Treat all text files as text and normalize line endings
+* text=auto
+
+# Force files with these extensions to always use LF endings (Linux style)
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.ino text eol=lf
+*.py text eol=lf
+
+# Binary files - Git will not try to modify these
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp4 binary
+*.pdf binary
+*.zip binary
+
+# If you use Git LFS (Large File Storage) - (Optional)
+# Make all .mp4 files handled by Git LFS
+# *.mp4 filter=lfs diff=lfs merge=lfs -text
