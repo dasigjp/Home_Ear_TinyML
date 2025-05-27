@@ -5,7 +5,7 @@ Welcome to the official repository of Home Ear TinyML – Sub Device, the wearab
 The Sub Device is a wearable wristwatch-like companion designed to receive and interpret alerts from the main Home Ear device. It uses TinyML, wireless modules (LoRa/BLE/Wi-Fi), LED indicators, haptic feedback, and visual displays to provide context-aware notifications based on sound detection (e.g., fire alarm, school bell, car horn).
 
 🧠 Features
-📡 Wireless Communication – Connects to the main Home Ear unit via LoRa/BLE/Wi-Fi
+📡 Wireless Communication – Connects to the main Home Ear unit via LoRa
 
 🧠 TinyML Sound Categorization – Classifies alerts like alarms, bells, or emergencies
 
@@ -18,17 +18,15 @@ The Sub Device is a wearable wristwatch-like companion designed to receive and i
 🧱 Compact Design – Built for wrist-based or clip-on wearable form factors
 
 ⚙️ Hardware Components
-Raspberry Pi Zero 2 W / ESP32 / RP2040 (depending on build)
+ESP32 TTGO T-Display 1.14 inch 
 
 INMP441 I2S Microphone (only in standalone models)
-
-0.96" or 1.3" OLED/TFT LCD display
 
 SX1278 LoRa module (optional)
 
 Coin vibration motor
 
-LiPo Battery (350–500mAh)
+LiPo Battery (700–2000mAh)
 
 Power management circuit
 
@@ -101,4 +99,5 @@ Crafted with infernal dedication by **John Paul Dasig**
 # 📸 Demo & Results
 
 ![Project Preview](preview.png)
-
+![Project Preview](preview1.png)
+![Project Preview](preview2.png)

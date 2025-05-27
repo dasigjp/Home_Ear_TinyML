@@ -1,12 +1,12 @@
-// NOTE -> THIS IS MY MAIN COPY OF CODE USE ON OUR ESP32 TTGO T-DISPLAY BOARD TO RUN MY TRAINED MODEL 04-04-25 at 09 am  This Model Uses Both MFCC and MFE
-// 03-14-25 coding for vibration motor on/off on for 3sec?? or on/off for 0.5sec for 3 times then stop
-//Main code
+// NOTE -> THIS IS MY MAIN COPY OF CODE USE ON OUR ESP32 TTGO T-DISPLAY BOARD TO RUN MY TRAINED MODEL. Last modified at 05-22-25 at 5 pm  This Model Uses Both MFCC and MFE
+// added Coin T motor config and initialization at boot. 
+// Main code  - https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 // test to recieve message thru Lora from Raspi
 
 
 #define EIDSP_QUANTIZE_FILTERBANK   0
 
-#include <Home_Ear_2025_inferencing.h> // Change the impulse library from <Home-Ear-TinyML_inferencing.h> to <Home-Ear-Final-TinyML_inferencing.h>
+#include <Home_Ear_2025_inferencing.h> 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
@@ -36,7 +36,17 @@ TFT_eSPI tft = TFT_eSPI();
 #define RST             12
 #define PIN_LORA_DIO0   2   // Interrupt
 bool inLoRaMode = false;  // Flag to track LoRa mode
+//  Create a global variable to store rssi and signal strength of Lora Line 551
+            int lora_rssi = 0;                 // Line 577 and 580
+            String lora_signalStrength = "";
+            
 
+//Coin T motor
+#define COIN_T_MOTOR_PIN 13 // Pin for Coin T motor
+#define COIN_T_MOTOR_SPEED 255 // Speed of the motor (0-255)
+#define COIN_T_MOTOR_DURATION 1000 // Duration to run the motor (in milliseconds) 
+#define COIN_T_MOTOR_DELAY 1000 // Delay between motor runs (in milliseconds)
+#define COIN_T_MOTOR_COUNT 3 // Number of times to run the motor
 
 /** Audio buffers, pointers and selectors */
 typedef struct {
@@ -66,6 +76,8 @@ void setup()
     Serial.begin(115200);
     disableWiFiAndBT(); // call disable wifi/bt function
     pinMode(USB_DETECT_PIN, INPUT); // Battery is Charging Detect
+    pinMode(COIN_T_MOTOR_PIN, OUTPUT); // Set motor pin as output
+    digitalWrite(COIN_T_MOTOR_PIN, LOW); // Turn off the motor initially
 
     // comment out the below line to cancel the wait for USB connection (needed for native USB)
     while (!Serial);
@@ -145,18 +157,24 @@ void bootconf(){
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
       tft.println("\tBluetooth : Disabled");
       delay(500);
-      tft.println("\tWifi configuration : Disabled");
+      tft.println("\tWifi configuration    : Disabled");
       delay(500);
-      tft.println("\tTFT LCD Display : ok");
+      tft.println("\tTFT LCD Display       : ok");
       delay(500);
-      tft.println("\tEsp32 Board     : ok");
+      tft.println("\tEsp32 Board           : ok");
       delay(500);
-      tft.println("\tinmp41 Status   : ok");
+      tft.println("\tSound Sensor Status   : ok");
       delay(500);
       tft.println("\tsx1278 Status   : ok");
       delay(500);
+
+      // Coin T motor Status Check
+      digitalWrite(COIN_T_MOTOR_PIN, HIGH); // Turn on the motor
+      delay(100); // Run the motor for the specified duration
+      digitalWrite(COIN_T_MOTOR_PIN, LOW); // Turn off the motor
       tft.println("\tCoin T motor    : ok");
       delay(500);
+
       tft.println("\tSystem Status   : ok");
       delay(500);
       tft.println("\tProgram Check   : ok");
@@ -268,6 +286,7 @@ void disableWiFiAndBT() {
     btStop();                // Stop Bluetooth
 }
 
+// Function to display messages on the TFT screen on StandAlone Mode
 void displayMessage(String message) {
     //drawNeonBorder();
     drawHighTechBorder();
@@ -311,8 +330,54 @@ void displayMessage(String message) {
         tft.setCursor(80, 80);
         tft.print("Detected");
     }
+    motorPlay(message);
+}
+// Function for motor duration and intensity here. Not yet configured for classification
+void motorPlay(String intensity) {
+    // Set the motor speed
+    if (intensity == "Extreme") {
+        for (int i = 0; i < 40; i++) {
+            digitalWrite(COIN_T_MOTOR_PIN, HIGH);
+            delay(200);
+            digitalWrite(COIN_T_MOTOR_PIN, LOW);
+            delay(200);
+        }
+    } else if (intensity == "Mild") {
+        for (int i = 0; i < 30; i++) {
+            digitalWrite(COIN_T_MOTOR_PIN, HIGH);
+            delay(100);
+            digitalWrite(COIN_T_MOTOR_PIN, LOW);
+            delay(100);
+        }
+    } else if (intensity == "FIRE ALARM" || intensity == "EMERGENCY VEHICLE" || intensity == "GUN SHOTS"){
+        for (int i = 0; i < 80; i++) {
+            digitalWrite(COIN_T_MOTOR_PIN, HIGH);
+            delay(200);
+            digitalWrite(COIN_T_MOTOR_PIN, LOW);
+            delay(200);
+        }
+    } else if (intensity == "EARTHQUAKE DRILL" || intensity == "DOOR KNOCK" || intensity == "DOG BARK"){
+        for (int i = 0; i < 80; i++) {
+            digitalWrite(COIN_T_MOTOR_PIN, HIGH);
+            delay(200);
+            digitalWrite(COIN_T_MOTOR_PIN, LOW);
+            delay(200);
+        }
+    } else if (intensity == "BABY CRYING"){
+        for (int i = 0; i < 40; i++) {
+            digitalWrite(COIN_T_MOTOR_PIN, HIGH);
+            delay(100);
+            digitalWrite(COIN_T_MOTOR_PIN, LOW);
+            delay(100);
+        }
+    } else {
+        // do nothing.
+    }
+    delay(500);
+
 }
 
+// Function to display LoRa message that is received from the RPi or Main Device
 void LoraMessage(String loramessage) {
     drawNeonVioletBorder();
     tft.setTextColor(TFT_GREEN);
@@ -335,7 +400,8 @@ void LoraMessage(String loramessage) {
         firstWord = loramessage; // Use the full message if no space
         secondWord = "";         // Leave secondWord empty
     }
-
+    motorPlay(loramessage);
+    
     if (loramessage == "FIRE ALARM" || loramessage == "EMERGENCY VEHICLE" || loramessage == "GUN SHOTS") {
         updateMiddleScreen(TFT_RED);
         tft.setTextColor(TFT_WHITE);
@@ -344,6 +410,7 @@ void LoraMessage(String loramessage) {
         tft.setCursor(80, 80);
         tft.print(secondWord);
         updateDisplay();
+        delay(180000); // Wait for 3 minutes before clearing the screen High Priority
 
     } else if (loramessage == "EARTHQUAKE DRILL" || loramessage == "DOOR KNOCK" || loramessage == "DOG BARK") {
         updateMiddleScreen(TFT_ORANGE);
@@ -353,6 +420,7 @@ void LoraMessage(String loramessage) {
         tft.setCursor(80, 80);
         tft.print(secondWord);
         updateDisplay();
+        delay(120000);
 
     } else if (loramessage == "BABY CRYING") {
         updateMiddleScreen(TFT_BLUE);
@@ -362,6 +430,7 @@ void LoraMessage(String loramessage) {
         tft.setCursor(80, 80);
         tft.print("Crying");
         updateDisplay();
+        delay(60000);
 
     } else {
         updateMiddleScreen(TFT_BLACK);
@@ -372,7 +441,9 @@ void LoraMessage(String loramessage) {
         tft.print("Detected");
         updateDisplay();  // Ensure screen updates
     }
-    delay(5000);
+    
+
+    
         updateMiddleScreen(TFT_BLACK); // Change middle part while keeping border
         tft.setTextColor(TFT_WHITE);
         tft.setTextSize(2);
@@ -393,15 +464,13 @@ void displayChargingStatus(bool charging) {
     tft.setTextColor(charging ? TFT_GREEN : TFT_WHITE, TFT_BLACK); // Green if charging, white if not
     tft.drawString("100%", tft.width() - 12, 15);
     //tft.setTextColor(TFT_WHITE, TFT_BLACK); // Reset text color
-
-
 }
 void updateDisplay() {
     bool charging = isCharging(); // Detect charging state
     displayChargingStatus(charging); // Call function to display status
 }
 
-// Draw border Neon Styles
+// Draw Neon Border Styles
 void drawNeonBorder() {
     tft.fillScreen(TFT_BLACK); // Clear screen first
     // Draw multiple rectangles to simulate a glow effect
@@ -550,15 +619,17 @@ void handleLoRa() {
             Serial.println(receivedMessage);
             Serial.print(" | RSSI: ");
             Serial.println(rssi);
+            lora_rssi = rssi; 
             Serial.print(" | Signal Strength: ");
             Serial.println(signalStrength);  
+            lora_signalStrength = signalStrength; 
             LoraMessage(receivedMessage); // send message to lora display handler
             lastReceivedTime = millis();  // Reset timer since a message was received
             //add delay 2 to 10 sec ??
         }
 
         // If no new message is received for 3 min, exit LoRa mode
-        if (millis() - lastReceivedTime > 30000) {  
+        if (millis() - lastReceivedTime > 180000) {  
             Serial.println("No LoRa signal for 3 min, returning to main Program...");
             inLoRaMode = false;
             tft.fillRect(20, 15, 50, 16, TFT_BLACK);  // Clear area where text was drawn LORA MODE OFF
@@ -622,6 +693,7 @@ void loop()
     
 
     // **Only update the display if the detected sound has changed**
+        // List of sounds to check by the classifier on StandAlone Mode.
     if (Classified_Sound != lastClassifiedSound) {
         if (Classified_Sound == "Car Horn"){
           Detected_Sound = "Extreme";
@@ -642,7 +714,7 @@ void loop()
     ei_printf("\n");
 #endif
 
-    delay(5000); // dinagdag ko for now delay for 10sec
+    delay(2000); // dinagdag ko for now delay for 10sec
 
   //Lora Checking for Connection
   
