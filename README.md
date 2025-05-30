@@ -101,3 +101,4 @@ Crafted with infernal dedication by **John Paul Dasig**
 ![Project Preview](preview.png)
 ![Project Preview](preview1.png)
 ![Project Preview](preview2.png)
+![Project Preview](TTGO-Schematic.png)
